@@ -1,17 +1,14 @@
-# Point to the internal API server hostname
 APISERVER=${APISERVER:-https://kubernetes.default.svc}
 
 # Path to ServiceAccount token
 SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
 
-# Read this Pod's namespace
-NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+if [ -z ${TOKEN} ]; then
+  NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+  TOKEN=$(cat ${SERVICEACCOUNT}/token)
+  CACERT=${SERVICEACCOUNT}/ca.crt
+fi
 
-# Read the ServiceAccount bearer token
-TOKEN=$(cat ${SERVICEACCOUNT}/token)
+#curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
+curl -v --insecure --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
 
-# Reference the internal certificate authority (CA)
-CACERT=${SERVICEACCOUNT}/ca.crt
-
-# Explore the API with TOKEN
-curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api
